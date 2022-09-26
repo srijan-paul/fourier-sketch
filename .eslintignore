@@ -1,0 +1,3 @@
+# config files
+.*.js
+snowpack.config.js
