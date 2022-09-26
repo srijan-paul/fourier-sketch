@@ -15,5 +15,6 @@ module.exports = {
     indent: ['error', 2],
     'linebreak-style': ['error', 'unix'],
     semi: ['warn', 'always'],
+    '@typescript-eslint/no-unused-vars': ['warn', { ignorePatterns: '_' }]
   },
 };
