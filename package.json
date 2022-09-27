@@ -7,8 +7,9 @@
   "license": "MIT",
   "scripts": {
     "start": "snowpack dev",
-    "build": "snowpack build",
-    "lint": "eslint src/ts"
+    "build": "tsc --noEmit && snowpack build",
+    "lint": "eslint src/ts",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.38.1",

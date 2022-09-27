@@ -29,6 +29,9 @@ export type GraphConfig = {
 
   // Renders the coordinate axes if 'true'
   showCoordinateAxes?: boolean;
+
+  // The speed with which the graph slides to the left.
+  slideSpeed?: number;
 };
 
 /**
@@ -51,7 +54,7 @@ export default class Graph {
   readonly center: [number, number];
 
   // A cache of points in the graph
-  private readonly pts: PtLike[] = [];
+  private pts: PtLike[] = [];
 
   private readonly width: number;
   private readonly height: number;
@@ -61,6 +64,7 @@ export default class Graph {
 
   showGrid: boolean;
   showCoordinateAxes: boolean;
+  slideSpeed: number = 0;
 
   constructor(func: (x: number) => number, config: GraphConfig) {
     this.func = func;
@@ -88,6 +92,8 @@ export default class Graph {
 
     this.showGrid = !!config.showGrid;
     this.showCoordinateAxes = !!config.showCoordinateAxes;
+
+    this.slideSpeed = config.slideSpeed || 0;
   }
 
   /**
@@ -107,6 +113,7 @@ export default class Graph {
   private construct() {
     const { domain, func, dx, xScale, yScale, center } = this;
 
+    this.pts = [];
     for (let x = domain[0]; x < domain[1]; x += dx) {
       const y = func(x);
 
