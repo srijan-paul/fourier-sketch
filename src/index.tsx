@@ -10,19 +10,19 @@ space.setup({ bgcolor: '#fafafa' });
 
 const form = space.getForm();
 
+function makeGraph(func: (x: number) => number): Graph {
+  return new Graph(func, {
+    width: space.width,
+    height: space.height,
+    domain: [-10, 10],
+    range: [-2, 2],
+  });
+}
+
 let graph: Graph | undefined;
 space.add(() => {
   space.clear();
-
-  if (!graph) {
-    graph = new Graph(x => Math.sin(x), {
-      width: space.width,
-      height: space.height,
-      domain: [-10, 10],
-      range: [-2, 2]
-    });
-  }
-
+  if (!graph) graph = makeGraph(x => Math.sign(Math.sin(x)));
   graph.plot(form);
 });
 

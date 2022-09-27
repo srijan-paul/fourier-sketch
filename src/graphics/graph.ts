@@ -38,9 +38,12 @@ export type GraphConfig = {
  * Renders a graph onto a give HTML canvas
  */
 export default class Graph {
-  private xScale = 10;
-  private yScale = 10;
+  // The default scaling factor of '3' is chosen arbitrarily.
+  private xScale = 3;
+  private yScale = 3;
 
+  // The function for which this Graph is plotted.
+  // Currently, only R -> R functions are supported.
   private func: (x: number) => number;
 
   // min-x, max-x
@@ -51,12 +54,16 @@ export default class Graph {
   // This knob controls ow "granular" the graph is.
   private dx = 0.01;
 
+  // The position of the origin ((0, 0)) in the CanvasSpace.
   readonly center: [number, number];
 
-  // A cache of points in the graph
+  // A cached list of points in the curve
   private pts: PtLike[] = [];
 
+  // width of the CanvasSpace in pixels
   private readonly width: number;
+
+  // height of the CanvasSpace in pixels
   private readonly height: number;
 
   // `true` if the points in this graph have been calculated and cached
@@ -64,7 +71,6 @@ export default class Graph {
 
   showGrid: boolean;
   showCoordinateAxes: boolean;
-  slideSpeed = 0;
 
   constructor(func: (x: number) => number, config: GraphConfig) {
     this.func = func;
@@ -92,8 +98,6 @@ export default class Graph {
 
     this.showGrid = !!config.showGrid;
     this.showCoordinateAxes = !!config.showCoordinateAxes;
-
-    this.slideSpeed = config.slideSpeed || 0;
   }
 
   /**
@@ -129,7 +133,7 @@ export default class Graph {
       this.pts.push([px, py]);
     }
 
-    this.isConstructed = true;
+    // this.isConstructed = true;
   }
 
   /**
