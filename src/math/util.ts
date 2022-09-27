@@ -1,4 +1,7 @@
-export type Point = [number, number];
+import { range } from 'lodash/fp';
+
+type Point = [number, number];
+export type Fun = (x: number) => number;
 
 /**
  * @param ptA First point in the line
@@ -11,23 +14,29 @@ export function slope(ptA: Point, ptB: Point): number {
 }
 
 /**
+ * Calculate the integral using [Trapezoidal rule](https://en.wikipedia.org/wiki/Trapezoidal_rule).
  * @param f A time domain function to integrate (W -> R).
- * @return Area under the curve of `f` between range[0] and range[1].
+ * @param interval Interval of integration ([to, from]).
+ * @return Area under the curve of `f` between interval[0] and interval[1].
  */
-export function integrate(f: number[]): number {
-  let area = 0;
-  for (let x = 1; x < f.length; x++) {
-    const y = f[x];
-    const xPrev = x - 1;
-    const yPrev = f[x - 1];
+export function integrate(f: Fun, interval: [number, number], dx = 0.01): number {
+  const [from, to] = interval;
+  const areaUnderF = range(from, to).reduce((acc, x) => {
+    const y = f(x);
+    const yNext = f(x + dx);
 
-    // find a trapezoid corresponding to [x, f[x]] and [x + 1, f[x + 1]]
-    const edgeA = yPrev;
-    const edgeB = y;
-    const trapHeight = x - xPrev;
-    const trapArea = trapHeight * ((edgeA + edgeB) / 2);
-    area += trapArea;
-  }
+    // find the area of a trapezoid corresponding to vertices:
+    // [(x, 0), (x, y), (x + dx, 0), (x + dx, f(x + dx))].
+    return acc + dx * ((yNext + y) / 2);
+  }, 0);
 
-  return area;
+  return areaUnderF;
+}
+
+/**
+ * @param f A list of Y-coordinates. The indices are assumed to be X-coordinates.
+ * @returns A function that estimates the curve described by the vector f.
+ */
+export function vectorToFunc(f: number[]): Fun {
+  return (t: number) => f[Math.floor(t * (f.length - 1))];
 }

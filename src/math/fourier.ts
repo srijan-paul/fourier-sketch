@@ -1,41 +1,50 @@
-import { Point, integrate } from './util';
+import { Fun, integrate, vectorToFunc } from './util';
+import { range } from 'lodash/fp';
 
 export type FourierCoeffs = {
   sine: number[];
   cosine: number[];
 };
 
-
 /**
- * @param curve Points in the original curve.
- * @param numHarmonics Number of terms to take from the fourier series.
- * @returns A list of sine and cosine waves that approximates the curves.
+ * Returns the Fourier sine and cosine coefficients for a time domain curve.
+ * @param f The function to estimate with Fourier analysis.
+ * @param numHarmonics Number of terms to take from the fourier series. (4 by default)
+ * @returns A list of fourier sine and cosine coefficents.
  */
-export default function decompose(curve: Point[], numHarmonics = curve.length - 1): FourierCoeffs {
+export default function decompose(f: Fun, numHarmonics = 4): FourierCoeffs {
   // f(t) = a0+∞∑n=1(ancos(nω0t)+bnsin(nω0t)
-  const coeffs = { sine: [], cosine: [] } as FourierCoeffs;
-
   // It is assumed that the poinst in `pts` all belong to 1 complete oscillation of the input wave
-  const T = curve.length;
-  const freq = (2 * Math.PI) / T;
+  const freq = 2 * Math.PI;
 
-  numHarmonics = Math.min(numHarmonics, curve.length - 1);
-
-  // The first fourier coefficient of the cosine part (AKA a_0) is the average,
-  coeffs.cosine.push(curve.map(pt => pt[1]).reduce((x, y) => x + y) / curve.length);
-
-  // A list of curves. The integral of each curve over T is a fourier cofficient
-  // for the cosinosudal part (a_n)
-  const fourierCosineTerms = [];
-  for (let n = 1; n <= numHarmonics; ++n) {
-    // A vector containing the points in the Nth harmonic.
-    const harmonicCurve = [];
-    for (let t = 0; t < curve.length; ++t) {
-      harmonicCurve.push(curve[t][1] * Math.cos((n + 1) * freq * t));
-    }
-    fourierCosineTerms.push(harmonicCurve);
+  /**
+   * @param fun Either `Math.cos` or `Math.sin`.
+   * @param n Serial number of the fourier coefficient to calculate.
+   * @return The `n`th fourier sine/cosine coefficient.
+   */
+  function fourierCoefficient(fun: (x: number) => number, n: number): number {
+    const integralTerm = (t: number) => f(t) * fun(n * freq * t);
+    return integrate(integralTerm, [0, 1]);
   }
 
-  const fourierCosineCoeffs = fourierCosineTerms.map(term => integrate(term));
-  return { sine: [], cosine: fourierCosineCoeffs };
+  const as = range(0, numHarmonics).map(i => fourierCoefficient(Math.cos, i));
+  const bs = range(0, numHarmonics).map(i => fourierCoefficient(Math.sin, i));
+  return { sine: bs, cosine: as };
+}
+
+export function approximateCurve({ sine, cosine }: FourierCoeffs): number[] {
+  const f = 2 * Math.PI;
+  const approximation = [];
+
+  for (let t = 0; t < 1; t += 0.1) {
+    const sineTerm = sine.reduce((acc, coeff, i) => acc + coeff * Math.sin(i * f * t), 0);
+    const cosineTerm = cosine.reduce((acc, coeff, i) => acc + coeff * Math.cos(i * f * t), 0);
+    approximation.push(sineTerm + cosineTerm);
+  }
+
+  return approximation;
+}
+
+export function approximateFunc(coeffs: FourierCoeffs): Fun {
+  return vectorToFunc(approximateCurve(coeffs));
 }

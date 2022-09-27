@@ -14,11 +14,6 @@ describe('slope', () => {
 
 describe('integrate', () => {
   it('can integrate (y = x ** 2) with a reasonable accuracy', () => {
-    const pts = [];
-    for (let i = 0; i <= 5; ++i) {
-      pts.push(i * i);
-    }
-
-    assert(integrate(pts) - 41.333 <= 4, '');
+    assert(integrate(Math.sin, [0, 5]) - 41.333 <= 1, 'Large error in integration');
   });
 });

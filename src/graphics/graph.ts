@@ -32,6 +32,9 @@ export type GraphConfig = {
 
   // The speed with which the graph slides to the left.
   slideSpeed?: number;
+
+  // An RGB color code representing the color of the curve
+  curveColor?: string;
 };
 
 /**
@@ -69,6 +72,8 @@ export default class Graph {
   // `true` if the points in this graph have been calculated and cached
   private isConstructed = false;
 
+  private curveColor = '#fd79a8';
+
   showGrid: boolean;
   showCoordinateAxes: boolean;
 
@@ -98,6 +103,10 @@ export default class Graph {
 
     this.showGrid = !!config.showGrid;
     this.showCoordinateAxes = !!config.showCoordinateAxes;
+
+    if (config.curveColor) {
+      this.curveColor = config.curveColor;
+    }
   }
 
   /**
@@ -133,7 +142,7 @@ export default class Graph {
       this.pts.push([px, py]);
     }
 
-    // this.isConstructed = true;
+    this.isConstructed = true;
   }
 
   /**
@@ -141,7 +150,7 @@ export default class Graph {
    * @param form The canvas form to draw with.
    */
   private renderXYAxes(form: CanvasForm): void {
-    form.stroke('#ddd');
+    form.stroke(this.curveColor);
     const [ox, oy] = this.center;
     form.line([
       [ox, 0],
