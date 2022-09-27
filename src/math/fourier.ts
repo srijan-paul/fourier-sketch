@@ -1,5 +1,3 @@
-type Point = [number, number]
-
-export default function decompose(pts: Point[]) {
+export default function decompose() {
   // TODO (@injuly)
 }

@@ -1,4 +1,4 @@
-import { CanvasSpace, PtLike, CanvasForm } from 'pts';
+import { PtLike, CanvasForm } from 'pts';
 
 export type GraphConfig = {
   // Width of the graph inside the canvas space.
@@ -38,8 +38,8 @@ export type GraphConfig = {
  * Renders a graph onto a give HTML canvas
  */
 export default class Graph {
-  private xScale: number = 10;
-  private yScale: number = 10;
+  private xScale = 10;
+  private yScale = 10;
 
   private func: (x: number) => number;
 
@@ -49,7 +49,7 @@ export default class Graph {
   private range: [number, number] = [0, 1];
 
   // This knob controls ow "granular" the graph is.
-  private dx: number = 0.01;
+  private dx = 0.01;
 
   readonly center: [number, number];
 
@@ -64,7 +64,7 @@ export default class Graph {
 
   showGrid: boolean;
   showCoordinateAxes: boolean;
-  slideSpeed: number = 0;
+  slideSpeed = 0;
 
   constructor(func: (x: number) => number, config: GraphConfig) {
     this.func = func;
