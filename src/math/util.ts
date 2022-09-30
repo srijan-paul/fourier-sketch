@@ -31,7 +31,7 @@ export function integrate(f: Fun, interval: [number, number] = [0, 1], dx = 0.01
 /**
  * @param f A list of Y-coordinates. The indices are assumed to be X-coordinates.
  * @returns A function that estimates the curve described by the vector f.
- * NOTE: This only wors for functions with a domain of [0, 1].
+ * NOTE: This only works for functions with a domain of [0, 1].
  */
 export function vectorToFunc(f: number[]): Fun {
   return (t: number) => f[Math.floor(t * (f.length - 1))];
