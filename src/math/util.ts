@@ -1,4 +1,4 @@
-import { range } from 'lodash/fp';
+import _ from 'lodash';
 
 type Point = [number, number];
 export type Fun = (x: number) => number;
@@ -19,23 +19,21 @@ export function slope(ptA: Point, ptB: Point): number {
  * @param interval Interval of integration ([to, from]).
  * @return Area under the curve of `f` between interval[0] and interval[1].
  */
-export function integrate(f: Fun, interval: [number, number], dx = 0.01): number {
+export function integrate(f: Fun, interval: [number, number] = [0, 1], dx = 0.01): number {
   const [from, to] = interval;
-  const areaUnderF = range(from, to).reduce((acc, x) => {
+  let areaUnderF = 0;
+  for (const x of _.range(from, to, dx)) {
     const y = f(x);
     const yNext = f(x + dx);
-
-    // find the area of a trapezoid corresponding to vertices:
-    // [(x, 0), (x, y), (x + dx, 0), (x + dx, f(x + dx))].
-    return acc + dx * ((yNext + y) / 2);
-  }, 0);
-
+    areaUnderF += dx * ((yNext + y) / 2);
+  }
   return areaUnderF;
 }
 
 /**
  * @param f A list of Y-coordinates. The indices are assumed to be X-coordinates.
  * @returns A function that estimates the curve described by the vector f.
+ * NOTE: This only wors for functions with a domain of [0, 1].
  */
 export function vectorToFunc(f: number[]): Fun {
   return (t: number) => f[Math.floor(t * (f.length - 1))];
