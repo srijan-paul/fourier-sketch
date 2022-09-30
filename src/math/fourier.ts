@@ -53,6 +53,7 @@ export function approximateCurve({ sine, cosine }: FourierCoeffs, T = 1, dt = 0.
   return approximation;
 }
 
-export function approximateFunc(coeffs: FourierCoeffs): Fun {
-  return vectorToFunc(approximateCurve(coeffs));
+export function approximateFunc(coeffs: FourierCoeffs, T = 1): Fun {
+  const pointsInCurve = approximateCurve(coeffs, T);
+  return vectorToFunc(pointsInCurve);
 }

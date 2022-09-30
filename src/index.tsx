@@ -22,12 +22,12 @@ function makeGraph(func: FuncPlot[] | FuncPlot): Graph {
 
 let graph: Graph | undefined;
 
-const actual = (x: number) => x - Math.floor(x);
-const fourierCoeffs = decompose(actual, 32);
+const actual = (x: number) => Math.sign(Math.sin(2 * Math.PI * x));
+const fourierCoeffs = decompose(actual, 50);
 const approx = approximateFunc(fourierCoeffs);
 
 const periodicApprox = (x: number) => {
-  if (!(x > 0 && x < 1)) {
+  if (!(x >= 0 && x <= 1)) {
     x = x - Math.floor(x);
   }
   return approx(x);

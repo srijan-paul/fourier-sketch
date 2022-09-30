@@ -20,7 +20,7 @@ export function slope(ptA: Point, ptB: Point): number {
 export function integrate(f: Fun, interval: [number, number] = [0, 1], dx = 0.01): number {
   const [from, to] = interval;
   let areaUnderF = 0;
-  for (let x  = from; x < to; x+= dx) {
+  for (let x = from; x < to; x += dx) {
     const y = f(x);
     const yNext = f(x + dx);
     areaUnderF += dx * ((yNext + y) / 2);
@@ -34,5 +34,5 @@ export function integrate(f: Fun, interval: [number, number] = [0, 1], dx = 0.01
  * NOTE: This only works for functions with a domain of [0, 1].
  */
 export function vectorToFunc(f: number[]): Fun {
-  return (t: number) => f[Math.floor(t * (f.length - 1))];
+  return (t: number) => f[Math.round(t * f.length)];
 }
