@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 type Point = [number, number];
 export type Fun = (x: number) => number;
 
@@ -22,7 +20,7 @@ export function slope(ptA: Point, ptB: Point): number {
 export function integrate(f: Fun, interval: [number, number] = [0, 1], dx = 0.01): number {
   const [from, to] = interval;
   let areaUnderF = 0;
-  for (const x of _.range(from, to, dx)) {
+  for (let x  = from; x < to; x+= dx) {
     const y = f(x);
     const yNext = f(x + dx);
     areaUnderF += dx * ((yNext + y) / 2);

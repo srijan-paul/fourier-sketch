@@ -28,7 +28,7 @@ export default function decompose(f: Fun, numHarmonics = 4, T = 1): FourierCoeff
     return (2 / T) * integrate(integralTerm, [0, T]);
   }
 
-  const harmonicRange = range(numHarmonics);
+  const harmonicRange = range(0, numHarmonics);
   const as = harmonicRange.map(i => fourierCoefficient(Math.cos, i));
   const bs = harmonicRange.map(i => fourierCoefficient(Math.sin, i));
   return { sine: bs, cosine: as };
@@ -40,11 +40,11 @@ export default function decompose(f: Fun, numHarmonics = 4, T = 1): FourierCoeff
  * @param dt Time step
  * @returns A list of points where each point corresponds to each value of `t`.
  */
-export function approximateCurve({ sine, cosine }: FourierCoeffs, T = 1, dt = 0.1): number[] {
+export function approximateCurve({ sine, cosine }: FourierCoeffs, T = 1, dt = 0.001):number[] {
   const f = (2 * Math.PI) / T;
   const approximation = [];
 
-  for (let t = 0; t < T; t += dt) {
+  for (let t = 0; t <= T; t += dt) {
     const sineTerm = sine.reduce((acc, coeff, i) => acc + coeff * Math.sin(i * f * t), 0);
     const cosineTerm = cosine.reduce((acc, coeff, i) => acc + coeff * Math.cos(i * f * t), 0);
     approximation.push(sineTerm + cosineTerm);

@@ -4,6 +4,7 @@ import { CanvasSpace } from 'pts';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { render, h, JSX } from 'preact';
 import Graph, { FuncPlot } from './graphics/graph';
+import decompose, { approximateFunc } from './math/fourier';
 
 const space = new CanvasSpace('#canvas');
 space.setup({ bgcolor: '#fafafa' });
@@ -14,20 +15,35 @@ function makeGraph(func: FuncPlot[] | FuncPlot): Graph {
   return new Graph(func, {
     width: space.width,
     height: space.height,
-    domain: [-10, 10],
+    domain: [-2, 2],
     range: [-2, 2],
   });
 }
 
 let graph: Graph | undefined;
+
+const actual = (x: number) => x - Math.floor(x);
+const fourierCoeffs = decompose(actual, 32);
+const approx = approximateFunc(fourierCoeffs);
+
+const periodicApprox = (x: number) => {
+  if (!(x > 0 && x < 1)) {
+    x = x - Math.floor(x);
+  }
+  return approx(x);
+};
+
 space.add(() => {
   space.clear();
   if (!graph)
     graph = makeGraph([
-      x => Math.sign(Math.sin(x)),
       {
-        fun: Math.sin,
-        color: '#efcb03',
+        fun: actual,
+        color: 'red',
+      },
+      {
+        fun: periodicApprox,
+        color: 'blue',
       },
     ]);
   graph.plot(form);
