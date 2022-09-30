@@ -1,5 +1,12 @@
 import { PtLike, CanvasForm } from 'pts';
 
+// A mathematical function having the signature f: R -> R
+type Func = (x: number) => number;
+
+// An object describing a function's plot.
+// If no color is specified, then a default is used.
+export type FuncPlot = { fun: Func; color: string } | Func;
+
 export type GraphConfig = {
   // Width of the graph inside the canvas space.
   width: number;
@@ -45,9 +52,13 @@ export default class Graph {
   private xScale = 3;
   private yScale = 3;
 
-  // The function for which this Graph is plotted.
+  // The list of functions to plot.
   // Currently, only R -> R functions are supported.
-  private func: (x: number) => number;
+  private funcs: Func[] = [];
+
+  // Maps a function the color in which it's curve should be drawn.
+  // colorOfFunc[i] is the color of the `i`th function.
+  private colorOfFunc: string[] = [];
 
   // min-x, max-x
   private domain: [number, number] = [0, 1];
@@ -61,7 +72,8 @@ export default class Graph {
   readonly center: [number, number];
 
   // A cached list of points in the curve
-  private pts: PtLike[] = [];
+  // pts[i][j] is the `j`th point of the `i`th function in `this.funcs`
+  private pts: PtLike[][] = [];
 
   // width of the CanvasSpace in pixels
   private readonly width: number;
@@ -72,13 +84,23 @@ export default class Graph {
   // `true` if the points in this graph have been calculated and cached
   private isConstructed = false;
 
-  private curveColor = '#fd79a8';
+  private defaultColor = '#fd79a8';
 
   showGrid: boolean;
   showCoordinateAxes: boolean;
 
-  constructor(func: (x: number) => number, config: GraphConfig) {
-    this.func = func;
+  /**
+   *
+   * @param funcs
+   * @param config
+   */
+  constructor(funcs: FuncPlot | FuncPlot[], config: GraphConfig) {
+    if (Array.isArray(funcs)) {
+      funcs.map(funcPlot => this.addFunc(funcPlot));
+    } else {
+      this.addFunc(funcs);
+    }
+
     this.width = config.width;
     this.height = config.height;
     const { domain, range } = config;
@@ -105,7 +127,24 @@ export default class Graph {
     this.showCoordinateAxes = !!config.showCoordinateAxes;
 
     if (config.curveColor) {
-      this.curveColor = config.curveColor;
+      this.defaultColor = config.curveColor;
+    }
+  }
+
+  /**
+   * Add a function to the list of functions plotted by this Graph.
+   */
+  public addFunc(funcPlot: FuncPlot) {
+    if (typeof funcPlot === 'function') {
+      this.funcs.push(funcPlot);
+      this.colorOfFunc.push(this.defaultColor);
+    } else {
+      this.funcs.push(funcPlot.fun);
+      this.colorOfFunc.push(funcPlot.color);
+    }
+
+    if (this.funcs.length !== this.colorOfFunc.length) {
+      throw new Error("Impossible code point reached.");
     }
   }
 
@@ -124,22 +163,26 @@ export default class Graph {
    * Fill the `pts` array by calculating all points that lie on the curve of `func`.
    */
   private construct() {
-    const { domain, func, dx, xScale, yScale, center } = this;
+    const { domain, funcs, dx, xScale, yScale, center } = this;
 
     this.pts = [];
-    for (let x = domain[0]; x < domain[1]; x += dx) {
-      const y = func(x);
+    for (const func of funcs) {
+      const ptsOfFunc = [];
+      for (let x = domain[0]; x < domain[1]; x += dx) {
+        const y = func(x);
 
-      // We scale the (x, y) point to the space's dimensions, then
-      // offset it by (center[0], center[1]) to make it lie on the accurate
-      // position in our graph.
-      // Note: (center[0], center[1]) is our origin whereas (0, 0) is the canvas's origin.
-      const px = center[0] + x * xScale;
+        // We scale the (x, y) point to the space's dimensions, then
+        // offset it by (center[0], center[1]) to make it lie on the accurate
+        // position in our graph.
+        // Note: (center[0], center[1]) is our origin whereas (0, 0) is the canvas's origin.
+        const px = center[0] + x * xScale;
 
-      // "-" instead of "+" because the Y axis is upside down in most
-      // graphics libraries, including pts.js
-      const py = center[1] - y * yScale;
-      this.pts.push([px, py]);
+        // "-" instead of "+" because the Y axis is upside down in most
+        // graphics libraries, including pts.js
+        const py = center[1] - y * yScale;
+        ptsOfFunc.push([px, py]);
+      }
+      this.pts.push(ptsOfFunc);
     }
 
     this.isConstructed = true;
@@ -150,7 +193,7 @@ export default class Graph {
    * @param form The canvas form to draw with.
    */
   private renderXYAxes(form: CanvasForm): void {
-    form.stroke(this.curveColor);
+    form.stroke(this.defaultColor);
     const [ox, oy] = this.center;
     form.line([
       [ox, 0],
@@ -176,9 +219,12 @@ export default class Graph {
       this.renderXYAxes(form);
     }
 
-    form.stroke('#fd79a8', 2);
-    for (let i = 1; i < this.pts.length; ++i) {
-      form.line([this.pts[i - 1], this.pts[i]]);
+    for (let i = 0; i < this.pts.length; ++i) {
+      const color = this.colorOfFunc[i];
+      form.stroke(color, 2);
+      for (let j = 1; j < this.pts[i].length; ++j) {
+        form.line([this.pts[i][j - 1], this.pts[i][j]]);
+      }
     }
   }
 }
