@@ -44,7 +44,19 @@ function makeGraphCanvas(id: string, funcsToPlot: FuncPlot[]) {
   space.play();
 }
 
-function Canvas({ width, height }: { width: number; height: number }): JSX.Element {
+function Canvas({
+  width,
+  height,
+  fns,
+}: {
+  width: number;
+  height: number;
+  fns: FuncPlot[];
+}): JSX.Element {
+  useEffect(() => {
+    makeGraphCanvas('canvas', fns);
+  }, []);
+
   return <canvas id="canvas" width={width} height={height}></canvas>;
 }
 
@@ -74,7 +86,6 @@ function initDrawCanvas(id: string): CanvasSpace {
       prevTime = time;
       const { pointer } = space;
       pointsInCurve.push(pointer);
-      console.log(pointsInCurve);
     }
   };
 
@@ -137,25 +148,27 @@ const periodicApprox = (x: number) => {
 };
 
 function App() {
-  useEffect(() => {
-    makeGraphCanvas('canvas', [
-      {
-        fun: actual,
-        color: '#e84118',
-      },
-      {
-        fun: periodicApprox,
-        color: '#40739e',
-      },
-    ]);
-  });
+  const plots = [
+    {
+      fun: actual,
+      color: '#e84118',
+    },
+    {
+      fun: periodicApprox,
+      color: '#40739e',
+    },
+  ];
 
   return (
     <div id="root">
-      <Canvas width={400} height={400} />
+      {/* <Canvas width={400} height={400} fns={plots} /> */}
       {/* Drawing canvas */}
 
-      <DrawCanvas width={400} height={500} />
+      <p>
+        <DrawCanvas width={400} height={500} />
+        <br />
+        <button>Animate</button>
+      </p>
 
       {/* Recreation canvas */}
     </div>
