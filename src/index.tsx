@@ -3,24 +3,46 @@ import { CanvasSpace } from 'pts';
 // preact imports need to exist in the source for the build to work.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { render, h, JSX } from 'preact';
+import { useEffect } from 'preact/hooks';
 import Graph, { FuncPlot } from './graphics/graph';
 import decompose, { approximateFunc } from './math/fourier';
 
-const space = new CanvasSpace('#canvas');
-space.setup({ bgcolor: '#fafafa' });
+/**
+ * Renders a graph of [funcsToPlot] on a regular HTML canvas with id [id].
+ */
+function makeGraphCanvas(id: string, funcsToPlot: FuncPlot[]) {
+  const space = new CanvasSpace(`#${id}`);
+  space.setup({ bgcolor: '#fafafa' });
 
-const form = space.getForm();
+  const form = space.getForm();
 
-function makeGraph(func: FuncPlot[] | FuncPlot): Graph {
-  return new Graph(func, {
-    width: space.width,
-    height: space.height,
-    domain: [-2, 2],
-    range: [-2, 2],
+  /**
+   * @param funcs List of functions to plot.
+   * @returns A `Graph` object.
+   */
+  const makeGraph = (funcs: FuncPlot[] | FuncPlot): Graph => {
+    return new Graph(funcs, {
+      width: space.width,
+      height: space.height,
+      domain: [-2, 2],
+      range: [-2, 2],
+    });
+  };
+
+  let graph: Graph | undefined;
+
+  space.add(() => {
+    space.clear();
+    if (!graph) graph = makeGraph(funcsToPlot);
+    graph.plot(form);
   });
+
+  space.play();
 }
 
-let graph: Graph | undefined;
+function Canvas({ width, height }: { width: number; height: number }): JSX.Element {
+  return <canvas id="canvas" width={width} height={height}></canvas>;
+}
 
 // Some functions to try:
 // Math.sin(2 * Math.PI * x)
@@ -38,10 +60,9 @@ const periodicApprox = (x: number) => {
   return approx(x);
 };
 
-space.add(() => {
-  space.clear();
-  if (!graph)
-    graph = makeGraph([
+function App() {
+  useEffect(() => {
+    makeGraphCanvas('canvas', [
       {
         fun: actual,
         color: 'red',
@@ -51,23 +72,16 @@ space.add(() => {
         color: 'blue',
       },
     ]);
-  graph.plot(form);
-});
+  });
 
-space.play();
+  return (
+    <div id="root">
+      <Canvas width={400} height={400} />
+      {/* Drawing canvas */}
 
-function Canvas({ width, height }: { width: number; height: number }): JSX.Element {
-  return <canvas id="canvas" width={width} height={height}></canvas>;
+      {/* Recreation canvas */}
+    </div>
+  );
 }
 
-render(
-  <div class="root">
-    <Canvas width={400} height={400} />
-    {/* Drawing canvas */}
-
-    <canvas></canvas>
-
-    {/* Recreation canvas */}
-  </div>,
-  document.body
-);
+render(<App />, document.body);

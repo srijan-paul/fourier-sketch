@@ -90,9 +90,8 @@ export default class Graph {
   showCoordinateAxes: boolean;
 
   /**
-   *
-   * @param funcs
-   * @param config
+   * @param funcs A function, or { func, color }, or an array of such descriptors describing a function to be plotted.
+   * @param config GraphConfig
    */
   constructor(funcs: FuncPlot | FuncPlot[], config: GraphConfig) {
     if (Array.isArray(funcs)) {
