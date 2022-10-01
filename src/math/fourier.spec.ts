@@ -10,10 +10,10 @@ import { range, zipWith } from 'lodash';
  * @returns An object containing members: Two arrays, each containing the Y-values
  * on the curve between 0 and T, and the total error in fourier approximation.
  */
-function getActualAndApproximateCurves(f: (x: number) => number, T: number, n = 4) {
+function getActualAndApproximateCurves(f: (x: number) => number, T: number, n = 4, dt = 0.1) {
   const { sine, cosine } = decompose(f, n, T);
-  const approximation = approximateCurve({ sine, cosine }, T);
-  const actual = range(0, T, 0.1).map(f);
+  const approximation = approximateCurve({ sine, cosine }, T, dt);
+  const actual = range(0, T, dt).map(f);
 
   const totalError = sum(zipWith(approximation, actual, (a, b) => Math.abs(a - b)));
   return {
@@ -47,5 +47,11 @@ describe('decompose', () => {
     // total error is ~2.6 with 164 curves.
     // Not a great number but oh well - we're approximating an infinite sum :)
     assert(totalError < 4);
+  });
+
+  it('can decompose an arbitrary signal with a period of 1', () => {
+    const { actual, approximation, totalError } = getActualAndApproximateCurves(Math.random, 1, 32);
+    assert.strictEqual(actual, approximation);
+    assert(totalError < 3);
   });
 });

@@ -30,7 +30,7 @@ function integralError(
 
 describe('integrate', () => {
   it('can integrate (y = x ** 2) with a reasonable accuracy', () => {
-    const error = Math.abs(integrate(x => x ** 2, [0, 5]) - 41.333);
+    const error = Math.abs(integrate(x => x ** 2, [0, 5], 0.001) - 41.333);
     assert(error <= 0.5, 'Large error in integration');
   });
 
@@ -52,5 +52,11 @@ describe('integrate', () => {
     const interval: [number, number] = [0, 2 * Math.PI];
     const error = integralError(f, 4 * Math.PI, interval);
     assert(error <= 0.01, 'Large error in estimating 4sin^2(x)');
+  });
+
+  it ('can integrate the sawtooth function', () => {
+    const f = (x: number) => x - Math.floor(x);
+    const error = integralError(f, 0.5, [0, 1]);
+    assert(error <= 0.01, 'Large error in estimating the sawtooth wave');
   });
 });
