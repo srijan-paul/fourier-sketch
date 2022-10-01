@@ -53,13 +53,20 @@ function initDrawCanvas(id: string): CanvasSpace {
   space.setup({ bgcolor: '#fafafa' });
   space.bindMouse();
 
+  let pointsInCurve: PtLike[] = [];
   let isMousePressed = false;
-  space.bindCanvas('mousedown', () => (isMousePressed = true));
-  space.bindCanvas('mouseup', () => (isMousePressed = false));
+  space.bindCanvas('mousedown', () => {
+    isMousePressed = true;
+    space.clear();
+  });
 
-  const pointsInCurve: PtLike[] = [];
+  space.bindCanvas('mouseup', () => {
+    isMousePressed = false;
+    pointsInCurve = [];
+  });
+
   let prevTime = -Infinity;
-  const captureIntervalMs = 150;
+  const captureIntervalMs = 25;
   const captureMousePosition = (time: number | undefined) => {
     if (!time || !isMousePressed) return;
     const dt = time - prevTime;
@@ -67,10 +74,22 @@ function initDrawCanvas(id: string): CanvasSpace {
       prevTime = time;
       const { pointer } = space;
       pointsInCurve.push(pointer);
+      console.log(pointsInCurve);
+    }
+  };
+
+  const form = space.getForm();
+  const renderCurve = () => {
+    form.stroke('#40739e', 2);
+    for (let i = 1; i < pointsInCurve.length; ++i) {
+      const pt = pointsInCurve[i];
+      const prevPt = pointsInCurve[i - 1];
+      form.line([prevPt, pt]);
     }
   };
 
   space.add(captureMousePosition);
+  space.add(renderCurve);
   return space;
 }
 
@@ -78,18 +97,16 @@ function DrawCanvas(props: { width: number; height: number }): JSX.Element {
   const [space, setSpace] = useState<CanvasSpace>();
 
   // When the component mounts on the DOM, instantiate the space.
-  useEffect(() => {
-    setSpace(initDrawCanvas('draw-canvas'));
-    space?.play();
-  }, []);
+  useEffect(() => setSpace(initDrawCanvas('draw-canvas')), []);
 
   // Once the space is instantiated, stat playing
   useEffect(() => {
     space?.play();
+    space?.pause();
   }, [space]);
 
-  const pauseCanvas = useCallback(() => space?.pause(), []);
-  const playCanvas = useCallback(() => space?.play(), []);
+  const playCanvas = useCallback(() => space?.resume(), [space]);
+  const pauseCanvas = useCallback(() => space?.pause(), [space]);
 
   return (
     <canvas
@@ -124,11 +141,11 @@ function App() {
     makeGraphCanvas('canvas', [
       {
         fun: actual,
-        color: 'red',
+        color: '#e84118',
       },
       {
         fun: periodicApprox,
-        color: 'blue',
+        color: '#40739e',
       },
     ]);
   });
