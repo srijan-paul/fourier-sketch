@@ -143,8 +143,11 @@ export default class Graph {
       this.colorOfFunc.push(funcPlot.color);
     }
 
-    if (this.funcs.length !== this.colorOfFunc.length) {
-      throw new Error("Impossible code point reached.");
+    // pts[i] stores the points in the `i`th funtion's curve.
+    // `funcs`, `colorOfFunc` and `pts` are all arrays that
+    this.pts.push([]);
+    if (!(this.funcs.length === this.colorOfFunc.length && this.funcs.length === this.pts.length)) {
+      throw new Error('Impossible code point reached.');
     }
   }
 
@@ -165,9 +168,11 @@ export default class Graph {
   private construct() {
     const { domain, funcs, dx, xScale, yScale, center } = this;
 
-    this.pts = [];
-    for (const func of funcs) {
-      const ptsOfFunc = [];
+    for (let i = 0; i < this.pts.length; ++i) {
+      const ptsOfFunc = this.pts[i];
+      const func = funcs[i];
+
+      let ptIndex = 0;
       for (let x = domain[0]; x < domain[1]; x += dx) {
         const y = func(x);
 
@@ -180,9 +185,9 @@ export default class Graph {
         // "-" instead of "+" because the Y axis is upside down in most
         // graphics libraries, including pts.js
         const py = center[1] - y * yScale;
-        ptsOfFunc.push([px, py]);
+        ptsOfFunc[ptIndex] = [px, py];
+        ++ptIndex;
       }
-      this.pts.push(ptsOfFunc);
     }
 
     this.isConstructed = true;

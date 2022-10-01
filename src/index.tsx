@@ -22,8 +22,13 @@ function makeGraph(func: FuncPlot[] | FuncPlot): Graph {
 
 let graph: Graph | undefined;
 
-const actual = (x: number) => Math.sign(Math.sin(2 * Math.PI * x));
-const fourierCoeffs = decompose(actual, 50);
+// Some functions to try:
+// Math.sin(2 * Math.PI * x)
+// Math.sign(Math.sin(2 * Math.PI * x))
+// Math.sin(2 * Math.PI * x)  + Math.sign(Math.cos(2 * Math.PI * x))
+
+const actual = (x: number) => Math.sign(Math.cos(2 * Math.PI * x));
+const fourierCoeffs = decompose(actual, 10);
 const approx = approximateFunc(fourierCoeffs);
 
 const periodicApprox = (x: number) => {
@@ -58,6 +63,11 @@ function Canvas({ width, height }: { width: number; height: number }): JSX.Eleme
 render(
   <div class="root">
     <Canvas width={400} height={400} />
+    {/* Drawing canvas */}
+
+    <canvas></canvas>
+
+    {/* Recreation canvas */}
   </div>,
   document.body
 );

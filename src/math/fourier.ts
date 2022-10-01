@@ -15,7 +15,6 @@ export type FourierCoeffs = {
  */
 export default function decompose(f: Fun, numHarmonics = 4, T = 1): FourierCoeffs {
   // f(t) = a0+∞∑n=1(ancos(nω0t)+bnsin(nω0t)
-  // It is assumed that the poinst in `pts` all belong to 1 complete oscillation of the input wave
   const freq = (2 * Math.PI) / T;
 
   /**
