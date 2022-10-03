@@ -5,6 +5,7 @@ import { h, JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { CanvasSpace, PtLike } from 'pts';
 import { approximateFunc, FourierCoeffs } from '../math/fourier';
+import { evaluatePolarFunc, PolarFun, toPolarFuncs } from '../math/util';
 
 export default function RedrawCanvas({
   width,
@@ -34,85 +35,69 @@ export default function RedrawCanvas({
       pts.push([xFunc(t), yFunc(t)]);
     }
 
-    /**
-     * A `PolarVector` describes a circles radius, phase and index (frequency).
-     */
-    type PolarVector = { radius: number; phase: number; freq: number };
+    const updateCircles = (vectors: PolarFun[], t: number, center: PtLike, offset: number[]) => {
+      const cumSum: PtLike = [0, 0];
+      for (const v of vectors) {
+        const [oldx, oldy] = cumSum;
+        const [x, y] = evaluatePolarFunc(cumSum, v, t);
+        [cumSum[0], cumSum[1]] = [x, y];
 
-    /**
-     * Converts a fourier series coefficient and frequency (a, b, n) to a vector
-     * that traces out an epicycle.
-     * @param coeffs The fourier cosine and sine coefficients.
-     * @param i Frequency of the wave.
-     * @returns A vector describing an epicyle corresponding to the `n`th term in the fourier series.
-     */
-    const toCircleVector = (
-      [a, b]: [number | undefined, number | undefined],
-      i: number
-    ): PolarVector => {
-      if (typeof a !== 'number' || typeof b !== 'number')
-        throw new Error('Impossible code point reached.');
-      const radius = Math.sqrt(a ** 2 + b ** 2);
-      const phase = Math.atan2(b, a);
-      return { radius, phase, freq: i };
-    };
+        if (!(offset[0] && offset[1])) {
+          offset[0] = center[0] - x;
+          offset[1] = center[1] - y;
+        }
 
-    // Vectors that trace the X-coordinate of the sketch.
-    const xVectors = zip(coeffs.x.cosine, coeffs.x.sine).map(toCircleVector);
-    // Vectors that trace the Y-coordinate of the sketch.
-    const yVectors = zip(coeffs.y.cosine, coeffs.y.sine).map(toCircleVector);
-
-    const updateCircles = (vectors: PolarVector[], offset: PtLike = [0, 0]) => {
-      const vectorSum: PtLike = [0, 0];
-      for (const { radius, phase, freq } of vectors) {
-        const [oldx, oldy] = vectorSum;
-        const x = oldx + radius * Math.cos(freq * t + phase);
-        const y = oldy + radius * Math.sin(freq * t + phase);
-
-        vectorSum[0] = x;
-        vectorSum[1] = y;
-
-        // if (oldx === 0 && oldy === 0) continue;
+        if (oldx === 0 && oldy === 0) continue;
 
         form.stroke('#0984e3', 1);
         form.fill(false);
-        form.line([
+        const linePts = [
           [oldx + offset[0], oldy + offset[1]],
           [x + offset[0], y + offset[1]],
-        ]);
-        form.circle([[oldx + offset[0], oldy + offset[1]], [radius]]);
+        ];
+        form.circle([[oldx + offset[0], oldy + offset[1]], [v.radius]]);
+        form.line(linePts);
+        form.stroke('green');
+        form.circle([linePts[1], [2]]);
       }
-      return vectorSum;
+      return cumSum;
     };
 
     let points: PtLike[] = [];
+    const xEpicycles = toPolarFuncs(xCoeffs).sort((a, b) => (b.radius - a.radius));
+    const yEpicycles = toPolarFuncs(yCoeffs).sort((a, b) => (b.radius - a.radius));
+    const xEpicycleCenter = [width / 5, (5 * height) / 6];
+    const yEpicycleCenter = [(4 * width) / 5, height / 6];
+
+    const xOffset: number[] = [];
+    const yOffset: number[] = [];
+
     const updateTrace = (t: number) => {
-      if (t % 1 === 0) points = [];
+      if (t === 0) points = [];
 
-      const xVectorTip = updateCircles(xVectors);
-      const yVectorTip = updateCircles(yVectors);
-      points.push([xVectorTip[0], yVectorTip[1]]);
+      const xVec = updateCircles(xEpicycles, t, xEpicycleCenter, xOffset);
+      const yVec = updateCircles(yEpicycles, t, yEpicycleCenter, yOffset);
+      const currentPoint = [xVec[0], yVec[0]];
+      form.line([[xVec[0] + xOffset[0], xVec[1] + xOffset[1]], currentPoint]);
+      form.line([[yVec[0] + yOffset[0], yVec[1] + yOffset[1]], currentPoint]);
 
-      form.stroke('purple', 2);
-      for (let i = 1; i < points.length; ++i) {
-        form.line([points[i - 1], points[i]]);
-      }
+      points.push([xVec[0], yVec[0]]);
     };
 
-    const dt = 0.01;
+    const dt = 0.003;
     let t = 0;
     const update = () => {
       updateTrace(t);
       t += dt;
-      // if (t > 1) t = 0;
+      if (t > 1) t = 0;
     };
 
     space.add(update);
 
     space.add(() => {
-      form.stroke('red', 2);
-      for (let i = 1; i < pts.length; ++i) {
-        form.line([pts[i - 1], pts[i]]);
+      form.stroke('purple', 2);
+      for (let i = 1; i < points.length; ++i) {
+        form.line([points[i - 1], points[i]]);
       }
     });
 

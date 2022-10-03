@@ -30,15 +30,18 @@ export default function FourierApprox(): JSX.Element {
     setTrace(true);
   }, []);
 
+  const width = 600;
+  const height = 600;
+
   return (
     <div className="fourier-approx">
-      <DrawCanvas2D width={400} height={400} sketch={sketch} />
+      <DrawCanvas2D width={width} height={height} sketch={sketch} />
       <button className="button-primary" onClick={handleClick}>
         Trace
       </button>
       <RedrawCanvas
-        width={400}
-        height={400}
+        width={width}
+        height={height}
         startTrace={startTrace}
         coeffs={coeffs}
       />

@@ -39,7 +39,7 @@ export default function decompose(f: Fun, numHarmonics = 4, T = 1): FourierCoeff
  * @param dt Time step
  * @returns A list of points where each point corresponds to each value of `t`.
  */
-export function approximateCurve({ sine, cosine }: FourierCoeffs, T = 1, dt = 0.01):number[] {
+export function approximateCurve({ sine, cosine }: FourierCoeffs, T = 1, dt = 0.01): number[] {
   const f = (2 * Math.PI) / T;
   const approximation = [];
 
