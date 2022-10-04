@@ -1,4 +1,4 @@
-import { CanvasSpace, PtLike } from 'pts';
+import { Bound, CanvasSpace, Pt, PtLike } from 'pts';
 
 // preact imports need to exist in the source for the build to work.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -14,8 +14,14 @@ export type Sketch = { points: PtLike[] };
 
 export const sketchFinished = signal(false);
 
-function initDrawCanvas(canvasElement: HTMLCanvasElement, sketchObj: Sketch): CanvasSpace {
+function initDrawCanvas(
+  canvasElement: HTMLCanvasElement,
+  width: number,
+  height: number,
+  sketchObj: Sketch
+): CanvasSpace {
   const space = new CanvasSpace(canvasElement);
+  space.resize(new Bound(new Pt(width, height)));
   space.setup({ bgcolor: '#fafafa' });
   space.bindMouse();
 
@@ -70,6 +76,7 @@ export default function DrawCanvas2D(props: {
   width: number;
   height: number;
   sketch: Sketch;
+  startSketchFun: () => void;
 }): JSX.Element {
   const [space, setSpace] = useState<CanvasSpace>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -77,7 +84,9 @@ export default function DrawCanvas2D(props: {
   // When the component mounts on the DOM, instantiate the space.
   useEffect(() => {
     if (!canvasRef.current) throw new Error('canvas not initialized.');
-    setSpace(initDrawCanvas(canvasRef.current, props.sketch));
+    setSpace(
+      initDrawCanvas(canvasRef.current, props.width, props.height, props.sketch)
+    );
   }, []);
 
   // Once the space is instantiated, start playing
@@ -88,6 +97,10 @@ export default function DrawCanvas2D(props: {
 
   const playCanvas = useCallback(() => space?.resume(), [space]);
   const pauseCanvas = useCallback(() => space?.pause(), [space]);
+  const mouseUpHandler = () => {
+    pauseCanvas();
+    props.startSketchFun();
+  };
 
   return (
     <canvas
@@ -95,7 +108,7 @@ export default function DrawCanvas2D(props: {
       width={props.width}
       height={props.height}
       onMouseOut={pauseCanvas}
-      onMouseUp={pauseCanvas}
+      onMouseUp={mouseUpHandler}
       onMouseDown={playCanvas}
       ref={canvasRef}
     ></canvas>

@@ -1,101 +1,39 @@
-import { CanvasSpace } from 'pts';
-
 // preact imports need to exist in the source for the build to work.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { render, h, JSX } from 'preact';
-import { useEffect } from 'preact/hooks';
-import Graph, { FuncPlot } from './graphics/graph';
-import decompose, { approximateFunc } from './math/fourier';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+
+import content from './content/content.md';
+import Fourier1DGraph from './components/FourierCanvas1D';
 import FourierApprox from './components/FourierApprox';
+import { Fun } from './math/util';
+import { useState } from 'preact/hooks';
 
-/**
- * Renders a graph of [funcsToPlot] on a regular HTML canvas with id [id].
- */
-function makeGraphCanvas(id: string, funcsToPlot: FuncPlot[]) {
-  const space = new CanvasSpace(`#${id}`);
-  space.setup({ bgcolor: '#fafafa' });
-
-  const form = space.getForm();
-
-  /**
-   * @param funcs List of functions to plot.
-   * @returns A `Graph` object.
-   */
-  const makeGraph = (funcs: FuncPlot[] | FuncPlot): Graph => {
-    return new Graph(funcs, {
-      width: space.width,
-      height: space.height,
-      domain: [-2, 2],
-      range: [-2, 2],
-    });
-  };
-
-  let graph: Graph | undefined;
-
-  space.add(() => {
-    space.clear();
-    if (!graph) graph = makeGraph(funcsToPlot);
-    graph.plot(form);
-  });
-
-  space.bindCanvas('mousedown', () => {
-    console.log('foo');
-  });
-
-  space.play();
-}
-
-function Canvas({
-  width,
-  height,
-  fns,
-}: {
-  width: number;
-  height: number;
-  fns: FuncPlot[];
-}): JSX.Element {
-  useEffect(() => {
-    makeGraphCanvas('canvas', fns);
-  }, []);
-
-  return <canvas id="canvas" width={width} height={height}></canvas>;
-}
-
-// Math.sin(2 * Math.PI * x)
-// Math.sign(Math.sin(2 * Math.PI * x))
-// Math.sin(2 * Math.PI * x)  + Math.sign(Math.cos(2 * Math.PI * x))
-
-const actual = (x: number) => x - Math.floor(x);
-const fourierCoeffs = decompose(actual, 40);
-const approx = approximateFunc(fourierCoeffs);
-
-const periodicApprox = (x: number) => {
-  if (!(x >= 0 && x <= 1)) {
-    x = x - Math.floor(x);
-  }
-  return approx(x);
-};
+const funcs = new Map<string, Fun>([
+  ['square', x => Math.sign(Math.sin(x * 2 * Math.PI))],
+  ['sawtooth', x => x - Math.floor(x)],
+]);
 
 function App() {
-  const plots = [
-    {
-      fun: actual,
-      color: '#e84118',
-    },
-    {
-      fun: periodicApprox,
-      color: '#40739e',
-    },
-  ];
+  // const selectorRef = useRef<HTMLSelectElement>(null);
+  const [func] = useState(() => funcs.get('square') || Math.sin);
+
+  // const changeFunction = useCallback(() => {
+  //   const fnName = selectorRef.current?.value;
+  //   if (!fnName) return;
+  //   const fn = funcs.get(fnName);
+  //   if (!fn) return;
+  //   setFunc(fn);
+  // }, [selectorRef.current]);
 
   return (
     <div id="root">
-      <Canvas width={400} height={400} fns={plots} />
-      {/* Drawing canvas */}
-
-      <FourierApprox />
-
-      {/* Recreation canvas */}
+      <div className="container main">
+        <div dangerouslySetInnerHTML={{ __html: content.body }}></div>
+        <Fourier1DGraph width={400} height={400} func={func} />
+        <FourierApprox />
+      </div>
     </div>
   );
 }

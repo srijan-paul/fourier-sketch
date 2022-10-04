@@ -3,12 +3,8 @@
 
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
-  mount: {
-  
-  },
-  plugins: [
-    /* ... */
-  ],
+  mount: {},
+  plugins: ['snowpack-plugin-markdown'],
   packageOptions: {
     /* ... */
   },
@@ -16,8 +12,8 @@ module.exports = {
     /* ... */
   },
   buildOptions: {
-    out: 'build'
+    out: 'build',
   },
   mode: 'development',
-  root: 'src'
+  root: 'src',
 };

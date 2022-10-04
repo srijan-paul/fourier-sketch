@@ -1,7 +1,7 @@
 // preact imports need to exist in the source for the build to work.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { h, JSX } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { CanvasSpace, PtLike } from 'pts';
 import { FourierCoeffs } from '../math/fourier';
 import { evaluatePolarFunc, PolarFun, toPolarFuncs } from '../math/util';
@@ -104,8 +104,20 @@ function initTrace(
   const updateTrace = (t: number) => {
     if (t === 0) points = [];
 
-    const xVec = updateCircles(xEpicycles, t, xEpicycleCenter, xEpicycleOffset, Axis.X);
-    const yVec = updateCircles(yEpicycles, t, yEpicycleCenter, yEpicycleOffset, Axis.Y).reverse();
+    const xVec = updateCircles(
+      xEpicycles,
+      t,
+      xEpicycleCenter,
+      xEpicycleOffset,
+      Axis.X
+    );
+    const yVec = updateCircles(
+      yEpicycles,
+      t,
+      yEpicycleCenter,
+      yEpicycleOffset,
+      Axis.Y
+    ).reverse();
     const currentPoint = [xVec[0], yVec[1]];
 
     // Draw 2 lines joining the tip of each epicycle vector sum to the current point
@@ -155,13 +167,22 @@ export default function RedrawCanvas({
 }): JSX.Element {
   const canvasRef = useRef(null);
 
+  const [space, setSpace] = useState<CanvasSpace>();
+
   useEffect(() => {
     if (startTrace && coeffs && canvasRef.current) {
       const space = new CanvasSpace(canvasRef.current);
       space.setup({ bgcolor: '#fafafa' });
       initTrace(width, height, space, coeffs);
+      setSpace(space);
     }
   }, [coeffs, startTrace, canvasRef]);
+
+  // When the component is unmounted, dispose of the space.
+  useEffect(() => () => {
+    space?.pause();
+    space?.dispose();
+  }, []);
 
   return (
     <div>

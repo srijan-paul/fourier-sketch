@@ -5,7 +5,7 @@ type Func = (x: number) => number;
 
 // An object describing a function's plot.
 // If no color is specified, then a default is used.
-export type FuncPlot = { fun: Func; color: string } | Func;
+export type FuncPlot = { fun: Func; color: string; } | Func;
 
 export type GraphConfig = {
   // Width of the graph inside the canvas space.
@@ -197,7 +197,7 @@ export default class Graph {
    * @param form The canvas form to draw with.
    */
   private renderXYAxes(form: CanvasForm): void {
-    form.stroke(this.defaultColor);
+    form.stroke(this.defaultColor, 1);
     const [ox, oy] = this.center;
     form.line([
       [ox, 0],

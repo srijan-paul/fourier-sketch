@@ -17,11 +17,13 @@ export default function FourierApprox(): JSX.Element {
 
   // When `startTrace` is set to true, we start tracing the curve.
   const [startTrace, setTrace] = useState(false);
-  const [coeffs, setCoeffs] = useState<{ x: FourierCoeffs; y: FourierCoeffs } | undefined>();
+  const [coeffs, setCoeffs] = useState<
+    { x: FourierCoeffs; y: FourierCoeffs } | undefined
+  >();
 
   const N = 50; // number of terms to take from the fourier series.
-  const handleClick = useCallback(() => {
-    const { points } = sketch;
+  const startSketch = useCallback(() => {
+    const points = sketch.points; /*.map(([x, y]) => [x + 100, y + 100])*/
     const xs = points.map(pt => pt[0]);
     const ys = points.map(pt => pt[1]);
 
@@ -35,18 +37,29 @@ export default function FourierApprox(): JSX.Element {
     setTrace(true);
   }, []);
 
-  const width = 400;
-  const height = 400;
+  const [drawCanvasWidth, drawCanvasHeight] = [400, 400];
+  const [fourierCanvasWidth, fourierCanvasHeight] = [400, 400];
 
   return (
     <div className="fourier-approx">
-      <div className="fourier-canvases" style={{ display: 'flex', flexDirection: 'row' }}>
-        <DrawCanvas2D width={width} height={height} sketch={sketch} />
-        <RedrawCanvas width={width} height={height} startTrace={startTrace} coeffs={coeffs} />
+      <div
+        className="fourier-canvases"
+        style={{ display: 'flex', flexDirection: 'row', gap: '2rem' }}
+      >
+        <DrawCanvas2D
+          width={drawCanvasWidth}
+          height={drawCanvasHeight}
+          sketch={sketch}
+          startSketchFun={startSketch}
+        />
+
+        <RedrawCanvas
+          width={fourierCanvasWidth}
+          height={fourierCanvasHeight}
+          startTrace={startTrace}
+          coeffs={coeffs}
+        />
       </div>
-      <button className="button-primary" onClick={handleClick}>
-        Trace
-      </button>
     </div>
   );
 }
