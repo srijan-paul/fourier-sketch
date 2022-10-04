@@ -8,13 +8,18 @@ import RedrawCanvas from './RedrawCanvas';
 import { vectorToFunc } from '../math/util';
 import { useCallback, useState } from 'preact/hooks';
 
+/**
+ * A pair of two canvases, the first is for the user to draw in.
+ * The second is where the drawing is retraced using fourier series.
+ */
 export default function FourierApprox(): JSX.Element {
   const sketch: Sketch = { points: [] };
-  // let fourierCoeffs: FourierCoeffs = { sine: [], cosine: [] };
-  const [startTrace, setTrace] = useState(false);
 
+  // When `startTrace` is set to true, we start tracing the curve.
+  const [startTrace, setTrace] = useState(false);
   const [coeffs, setCoeffs] = useState<{ x: FourierCoeffs; y: FourierCoeffs } | undefined>();
 
+  const N = 50; // number of terms to take from the fourier series.
   const handleClick = useCallback(() => {
     const { points } = sketch;
     const xs = points.map(pt => pt[0]);
@@ -23,28 +28,25 @@ export default function FourierApprox(): JSX.Element {
     const xFunc = vectorToFunc(xs);
     const yFunc = vectorToFunc(ys);
 
-    const xFourierCoeffs = decompose(xFunc, 32, 1);
-    const yFourierCoeffs = decompose(yFunc, 32, 1);
+    const xFourierCoeffs = decompose(xFunc, N, 1);
+    const yFourierCoeffs = decompose(yFunc, N, 1);
 
     setCoeffs({ x: xFourierCoeffs, y: yFourierCoeffs });
     setTrace(true);
   }, []);
 
-  const width = 600;
-  const height = 600;
+  const width = 400;
+  const height = 400;
 
   return (
     <div className="fourier-approx">
-      <DrawCanvas2D width={width} height={height} sketch={sketch} />
+      <div className="fourier-canvases" style={{ display: 'flex', flexDirection: 'row' }}>
+        <DrawCanvas2D width={width} height={height} sketch={sketch} />
+        <RedrawCanvas width={width} height={height} startTrace={startTrace} coeffs={coeffs} />
+      </div>
       <button className="button-primary" onClick={handleClick}>
         Trace
       </button>
-      <RedrawCanvas
-        width={width}
-        height={height}
-        startTrace={startTrace}
-        coeffs={coeffs}
-      />
     </div>
   );
 }

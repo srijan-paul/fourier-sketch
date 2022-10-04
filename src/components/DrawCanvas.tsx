@@ -37,6 +37,11 @@ function initDrawCanvas(canvasElement: HTMLCanvasElement, sketchObj: Sketch): Ca
     if (dt >= captureIntervalMs) {
       prevTime = time;
       const { pointer } = space;
+      // If the cursor is EXACTLY at the center of the canvas, we ignore it's coords in the curve.
+      // For some reason, regardless of where the user clicks on the canvas,
+      // the first few coordinates are always the center of the canvas.
+      // (TODO) - figure out the source of this bug.
+      if (pointer[0] === space.width / 2 && pointer[1] === space.height / 2) return;
       sketchObj.points.push(pointer);
     }
   };
@@ -56,11 +61,6 @@ function initDrawCanvas(canvasElement: HTMLCanvasElement, sketchObj: Sketch): Ca
   space.add(renderCurve);
   return space;
 }
-
-// export function DrawCanvas1D(props:{}): JSX.Element {
-//   const canvasRef = useRef(null);
-//   return <canvas ref={canvasRef}></canvas>;
-// }
 
 /**
  * @param props width and height of the canvas

@@ -93,9 +93,7 @@ function App() {
       <Canvas width={400} height={400} fns={plots} />
       {/* Drawing canvas */}
 
-      <p>
-        <FourierApprox />
-      </p>
+      <FourierApprox />
 
       {/* Recreation canvas */}
     </div>
